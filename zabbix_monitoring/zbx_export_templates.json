@@ -1,0 +1,47 @@
+{
+    "zabbix_export": {
+        "version": "6.2",
+        "date": "2023-02-20T17:48:25Z",
+        "template_groups": [
+            {
+                "uuid": "7df96b18c230490a9a0a9e2307226338",
+                "name": "Templates"
+            }
+        ],
+        "templates": [
+            {
+                "uuid": "4effe3b3f8d1486ea57cf418898327c2",
+                "template": "Rsync_backup",
+                "name": "Rsync_backup",
+                "groups": [
+                    {
+                        "name": "Templates"
+                    }
+                ],
+                "items": [
+                    {
+                        "uuid": "452dd34847824fabafe01452aee058e4",
+                        "name": "Check backups",
+                        "type": "ZABBIX_ACTIVE",
+                        "key": "check.backups",
+                        "delay": "12h",
+                        "trends": "0",
+                        "value_type": "TEXT",
+                        "description": "Check if all configured backups were executed successfully",
+                        "triggers": [
+                            {
+                                "uuid": "526c0d01c3e7498d97bfee9db87a148d",
+                                "expression": "last(/Rsync_backup/check.backups,#1)<>\"OK\"",
+                                "name": "Missing backup",
+                                "opdata": "{ITEM.VALUE}",
+                                "priority": "WARNING",
+                                "description": "Missing backup on backup server.",
+                                "manual_close": "YES"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

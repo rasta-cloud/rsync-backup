@@ -1,0 +1,13 @@
+{
+    "server_name": "server.example.com",
+    "ssh_user": "ubuntu",
+    "port": 22,
+    "destination_directory": "/var/backup",
+    "source_directories": [
+        {"dir": "/home/ubuntu", "exclude": ["/home/ubuntu/.ssh"]},
+        {"dir": "/var/www"},
+    ],
+    "storage_duration": 45,
+    "prebackup_script": "sudo mysqldump dev | gzip > /home/ubuntu/mysql_backup/backup.sql.gz",
+    "postbackup_script": "rm -r /home/ubuntu/mysql_backup/*"
+}
