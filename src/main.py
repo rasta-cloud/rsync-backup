@@ -12,9 +12,6 @@ if len(sys.argv) != 2:
 config = json.load(open(sys.argv[1]))
 
 # Check if necessary information is filled in
-if "server_name" not in config:
-    print("Error - You have to specify server_name (backup source server)!")
-    exit(1)
 if "destination_directory" not in config:
     print("Error - You have to specify destination_directory (Destination for backed-up data)!")
     exit(1)
@@ -34,19 +31,26 @@ else:
 
 # Prepare some necessary variables
 date_time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-backup_dir = config['destination_directory'] + "/" + config['server_name']
+if 'server_name' not in config:
+    backup_dir = config['destination_directory'] + "/localhost"
+else:
+    backup_dir = config['destination_directory'] + "/" + config['server_name']
 backup_path = backup_dir + "/" + date_time
 latest_link = backup_dir + "/latest"
-rsync_base = "/usr/bin/rsync -a --mkpath "
+rsync_base = "/usr/bin/rsync -aA --mkpath "
 if config['port'] != 22:
     rsync_base += "-e 'ssh -p " + str(config['port']) + "' "
 
 # Run prebackup script
 if "prebackup_script" in config and config['prebackup_script']:
-    remote_command = "ssh "
-    if config['port'] != 22:
-        remote_command += "-p " + str(config['port']) + " "
-    remote_command += "'" + config['ssh_user'] + "@" + config['server_name'] + "' '" + config['prebackup_script'] + "'"
+    if 'server_name' not in config:
+        remote_command = config['prebackup_script']
+    else:
+        remote_command = "ssh "
+        if config['port'] != 22:
+            remote_command += "-p " + str(config['port']) + " "
+        remote_command += "'" + config['ssh_user'] + "@" + config['server_name'] + "' '" + \
+                          config['prebackup_script'] + "'"
     result_code = os.system(remote_command)
     if result_code > 0:
         print(result_code)
@@ -60,7 +64,10 @@ for source_dirs in config['source_directories']:
     if "exclude" in source_dirs:
         for exclude_path in source_dirs['exclude']:
             rsync += "--exclude='" + exclude_path + "' "
-    rsync += "'" + config['ssh_user'] + "@" + config['server_name'] + ":" + src_dir + "' "
+    if 'server_name' not in config:
+        rsync += src_dir + " "
+    else:
+        rsync += "'" + config['ssh_user'] + "@" + config['server_name'] + ":" + src_dir + "' "
     rsync += "--link-dest '" + latest_link + src_dir + "' "
     rsync += "'" + backup_path + src_dir + "' "
     # Finally run rsync. Yup
@@ -74,10 +81,14 @@ if os.path.exists(backup_path):
 
 # Run postbackup script
 if "postbackup_script" in config and config['postbackup_script']:
-    remote_command = "ssh "
-    if config['port'] != 22:
-        remote_command += "-p " + str(config['port']) + " "
-    remote_command += "'" + config['ssh_user'] + "@" + config['server_name'] + "' '" + config['postbackup_script'] + "'"
+    if 'server_name' not in config:
+        remote_command = config['postbackup_script']
+    else:
+        remote_command = "ssh "
+        if config['port'] != 22:
+            remote_command += "-p " + str(config['port']) + " "
+        remote_command += "'" + config['ssh_user'] + "@" + config['server_name'] + "' '" + \
+                          config['postbackup_script'] + "'"
     result_code = os.system(remote_command)
     if result_code > 0:
         print(result_code)

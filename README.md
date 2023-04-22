@@ -1,6 +1,6 @@
 Rsync backup
 ==
-Backup your files from remote machines using Rsync.
+Backup your files from machines (remote or localhost) using Rsync.
 
 Usage:
 ---
@@ -14,11 +14,11 @@ Example:
 ```
 Description of JSON config file:
 ---
-- `server_name` (required) - IP address or FQDN of the server, which you want to backup.
+- `server_name` - IP address or FQDN of the server, which you want to back up. If empty, script will back up data from local host
 - `ssh_user` (required) - Name of a user on the backed-up machine
 - `port` (optional) - SSH port on the backed-up machine. If not specified, the script will use the default port 22
 - `destination_directory` (required) - Directory on the local machine, where the script will save backed-up files
-- `source_directories` (required) - List of directories to backup
+- `source_directories` (required) - List of directories to back up
   - `dir` (required) - Path to a directory
   - `exclude` (optional) - List of excluded directories in the specified directory
 - `storage_duration` (required) - Count of backups to store
