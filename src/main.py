@@ -3,6 +3,7 @@ import datetime
 import sys
 import json
 import shutil
+import pathlib
 
 if len(sys.argv) != 2:
     print("Program usage: " + sys.argv[0] + "[config file]")
@@ -37,16 +38,18 @@ else:
     backup_dir = config['destination_directory'] + "/" + config['server_name']
 backup_path = backup_dir + "/" + date_time
 latest_link = backup_dir + "/latest"
-rsync_base = "/usr/bin/rsync -aA --mkpath "
+rsync_base = "/usr/bin/rsync -aA "
 if config['port'] != 22:
-    rsync_base += "-e 'ssh -p " + str(config['port']) + "' "
+    rsync_base += "-e 'ssh -o StrictHostKeyChecking=no -p " + str(config['port']) + "' "
+else:
+    rsync_base += "-e 'ssh -o StrictHostKeyChecking=no' "
 
 # Run prebackup script
 if "prebackup_script" in config and config['prebackup_script']:
     if 'server_name' not in config:
         remote_command = config['prebackup_script']
     else:
-        remote_command = "ssh "
+        remote_command = "ssh -o StrictHostKeyChecking=no "
         if config['port'] != 22:
             remote_command += "-p " + str(config['port']) + " "
         remote_command += "'" + config['ssh_user'] + "@" + config['server_name'] + "' '" + \
@@ -70,6 +73,8 @@ for source_dirs in config['source_directories']:
         rsync += "'" + config['ssh_user'] + "@" + config['server_name'] + ":" + src_dir + "' "
     rsync += "--link-dest '" + latest_link + src_dir + "' "
     rsync += "'" + backup_path + src_dir + "' "
+    # Needed to create directory manually, because Synology's ash can't recognize parameter --mkpath in rsync command
+    pathlib.Path(backup_path + src_dir).mkdir(parents=True, exist_ok=True)
     # Finally run rsync. Yup
     os.system(rsync)
 
