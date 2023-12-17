@@ -9,6 +9,7 @@ do
 	[[ -e "${conf_file}" ]] || break
 	dest_dir=$(jq '.destination_directory' < "${conf_file}" | tr -d '"')
 	srv_name=$(jq '.server_name' < "${conf_file}" | tr -d '"')
+	if [[ "${srv_name}" == "null" ]]; then srv_name="localhost"; fi
 	latest_dir=$(realpath "${dest_dir}/${srv_name}/latest")
 	latest_dir_name=$(echo "${latest_dir}" | rev | cut -d "/" -f 1 | rev)
 	creation_date_time=$(date -d "$(echo "${latest_dir_name}" | sed "s|\(....\)-\(..\)-\(..\)-\(..\)-\(..\)-\(..\)|\1/\2/\3 \4:\5:\6|")" "+%s")
@@ -27,14 +28,17 @@ do
 
 done
 
-today=$(date "+%Y-%m-%d")
-for log_file in "${logs_path}"/*
-do
-	if [[ $(date -r "${log_file}" "+%Y-%m-%d") == "${today}" && -s "${log_file}" ]]
-	then
-		result="${result} Log file ${log_file}:"$'\n'$(cat "${log_file}")$'\n'
-	fi
-done
+if [[ -d "${logs_path}" ]]
+then
+	today=$(date "+%Y-%m-%d")
+	for log_file in "${logs_path}"/*
+	do
+		if [[ $(date -r "${log_file}" "+%Y-%m-%d") == "${today}" && -s "${log_file}" ]]
+		then
+			result="${result} Log file ${log_file}:"$'\n'$(cat "${log_file}")$'\n'
+		fi
+	done
+fi
 
 if [[ -z "${result}" ]]
 then
