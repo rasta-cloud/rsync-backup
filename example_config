@@ -4,7 +4,7 @@
     "port": 22,
     "destination_directory": "/var/backup",
     "source_directories": [
-        {"dir": "/home/ubuntu", "exclude": ["/home/ubuntu/.ssh"]},
+        {"dir": "/home/ubuntu", "exclude": [".ssh", ".bash_history"]},
         {"dir": "/var/www"},
     ],
     "storage_duration": 45,
