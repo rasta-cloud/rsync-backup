@@ -2,6 +2,7 @@ import os
 import datetime
 import sys
 import json
+import stat
 import shutil
 import pathlib
 
@@ -99,6 +100,13 @@ if "postbackup_script" in config and config['postbackup_script']:
         print(result_code)
 
 # Delete folders older than the time defined at config['storage_duration']
+def edit_rw(action, name, exc):
+    if os.path.islink(name):
+        os.unlink(name)
+    elif not os.access(name, os.W_OK):
+        os.chmod(name, 0o700)
+        shutil.rmtree(name, onerror=edit_rw)
+
 dir_list = next(os.walk(backup_dir))[1]
 dir_list.remove("latest")
 storage_duration = datetime.timedelta(days=config['storage_duration'])
@@ -106,4 +114,4 @@ date_time_to_remove = datetime.datetime.now() - storage_duration
 for data_dir in dir_list:
     creation_date_time = datetime.datetime.strptime(data_dir, "%Y-%m-%d-%H-%M-%S")
     if creation_date_time < date_time_to_remove:
-        shutil.rmtree(backup_dir + "/" + data_dir)
+        shutil.rmtree(backup_dir + "/" + data_dir, onerror=edit_rw)
