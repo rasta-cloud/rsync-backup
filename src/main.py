@@ -2,7 +2,6 @@ import os
 import datetime
 import sys
 import json
-import stat
 import shutil
 import pathlib
 
@@ -15,10 +14,10 @@ config = json.load(open(sys.argv[1]))
 
 # Check if necessary information is filled in
 if "destination_directory" not in config:
-    print("Error - You have to specify destination_directory (Destination for backed-up data)!")
+    print("Error - You have to specify destination_directory (Destination for backup data)!")
     exit(1)
-if "source_directories" not in config:
-    print("Error - You have to specify source_directories (Paths to data, which you want to backup)!")
+if "source_locations" not in config:
+    print("Error - You have to specify source_locations (Paths to data, which you want to backup)!")
     exit(1)
 if "storage_duration" not in config or type(config['storage_duration']) != int:
     print("Error - You have to specify storage_duration (Number of days to store data)!")
@@ -60,22 +59,29 @@ if "prebackup_script" in config and config['prebackup_script']:
         print(result_code)
 
 # Add directives to rsync related to every entry of the list of source dirs
-for source_dirs in config['source_directories']:
+for source_location in config['source_locations']:
     rsync = rsync_base
-    src_dir = source_dirs['dir']
-    if src_dir[-1] != "/":
-        src_dir += "/"
-    if "exclude" in source_dirs:
-        for exclude_path in source_dirs['exclude']:
-            rsync += "--exclude='" + exclude_path + "' "
+    src_loc = ""
+    if 'dir' in source_location and 'file' in source_location:
+        print(f'Error - As source you have to define either file or dir ({source_location})!')
+        exit(1)
+    if 'dir' in source_location:
+        src_loc = source_location['dir']
+        if src_loc[-1] != "/":
+            src_loc += "/"
+        if "exclude" in source_location:
+            for exclude_path in source_location['exclude']:
+                rsync += "--exclude='" + exclude_path + "' "
+    elif 'file' in source_location:
+        src_loc = source_location['file']
     if 'server_name' not in config:
-        rsync += src_dir + " "
+        rsync += src_loc + " "
     else:
-        rsync += "'" + config['ssh_user'] + "@" + config['server_name'] + ":" + src_dir + "' "
-    rsync += "--link-dest '" + latest_link + src_dir + "' "
-    rsync += "'" + backup_path + src_dir + "' "
+        rsync += "'" + config['ssh_user'] + "@" + config['server_name'] + ":" + src_loc + "' "
+    rsync += "--link-dest '" + latest_link + src_loc + "' "
+    rsync += "'" + backup_path + src_loc + "' "
     # Needed to create directory manually, because Synology's ash can't recognize parameter --mkpath in rsync command
-    pathlib.Path(backup_path + src_dir).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(backup_path + src_loc).mkdir(parents=True, exist_ok=True)
     # Finally run rsync. Yup
     os.system(rsync)
 

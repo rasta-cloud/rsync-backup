@@ -18,9 +18,10 @@ Description of JSON config file:
 - `ssh_user` (required) - Name of a user on the backed-up machine
 - `port` (optional) - SSH port on the backed-up machine. If not specified, the script will use the default port 22
 - `destination_directory` (required) - Directory on the local machine, where the script will save backed-up files
-- `source_directories` (required) - List of directories to back up
-  - `dir` (required) - Path to a directory
-  - `exclude` (optional) - List of excluded directories in the specified directory
+- `source_locations` (required) - List of directories or files to back up. Must contain either dir or file, but not both
+  - `file` - Path to a file
+  - `dir` - Path to a directory
+    - `exclude` (optional) - List of excluded directories in the specified directory
 - `storage_duration` (required) - Count of backups to store
 - `prebackup_script` (optional) - Script which will run before the backup starts
 - `postbackup_script` (optional) - Script which will run after the backup ends

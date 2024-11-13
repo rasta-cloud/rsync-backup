@@ -3,9 +3,10 @@
     "ssh_user": "ubuntu",
     "port": 22,
     "destination_directory": "/var/backup",
-    "source_directories": [
+    "source_locations": [
         {"dir": "/home/ubuntu", "exclude": [".ssh", ".bash_history"]},
         {"dir": "/var/www"},
+        {"file": "/etc/passwd"}
     ],
     "storage_duration": 45,
     "prebackup_script": "sudo mysqldump dev | gzip > /home/ubuntu/mysql_backup/backup.sql.gz",
